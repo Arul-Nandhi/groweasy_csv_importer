@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 // Shared mock mapper — used when no API key is set OR when Gemini fails for any reason
 function runMockMapper(fileData) {
@@ -135,7 +135,7 @@ export async function POST(request) {
 
   // Try Gemini AI — fall back to mock on ANY failure (quota, model not found, network, etc.)
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
+    const ai = new GoogleGenAI({ apiKey });
     const modelsToTry = ["gemini-1.5-flash-8b", "gemini-1.5-flash", "gemini-2.0-flash"];
 
     const systemPrompt = `
@@ -174,17 +174,20 @@ export async function POST(request) {
     for (const modelName of modelsToTry) {
       try {
         console.log(`Trying Gemini model: ${modelName}`);
-        const model = genAI.getGenerativeModel({
+
+        const response = await ai.models.generateContent({
           model: modelName,
-          generationConfig: { responseMimeType: "application/json" },
+          contents: [
+            { text: systemPrompt },
+            { text: `Map these leads:\n${JSON.stringify(fileData)}` }
+          ],
+          config: {
+            responseMimeType: "application/json"
+          }
         });
 
-        const response = await model.generateContent([
-          { text: systemPrompt },
-          { text: `Map these leads:\n${JSON.stringify(fileData)}` },
-        ]);
-
-        const mappedLeads = JSON.parse(response.response.text());
+        const textContent = response.text;
+        const mappedLeads = JSON.parse(textContent);
         console.log(`Gemini (${modelName}) mapped ${mappedLeads.length} leads.`);
 
         return Response.json({
@@ -196,6 +199,7 @@ export async function POST(request) {
 
       } catch (modelErr) {
         const msg = String(modelErr.message || "");
+        console.warn(`Model ${modelName} error details:`, modelErr);
         const isRetryable = msg.includes("429") || msg.includes("404") || msg.includes("quota") || msg.includes("not found") || msg.includes("limit");
         if (isRetryable) {
           console.warn(`Model ${modelName} unavailable, trying next...`);
