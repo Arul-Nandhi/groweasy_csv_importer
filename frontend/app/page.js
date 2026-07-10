@@ -145,7 +145,7 @@ export default function Home() {
       description: "Very interested"
     },
     {
-      name: "Missing One",
+      name: "",
       email: "",
       country_code: "",
       mobile_without_country_code: "",
@@ -161,7 +161,7 @@ export default function Home() {
       description: "Skipped - no email or phone"
     },
     {
-      name: "Missing Two",
+      name: "",
       email: "",
       country_code: "",
       mobile_without_country_code: "",
@@ -177,7 +177,7 @@ export default function Home() {
       description: "Skipped - no contact info"
     },
     {
-      name: "Missing Three",
+      name: "",
       email: "",
       country_code: "",
       mobile_without_country_code: "",
@@ -193,7 +193,7 @@ export default function Home() {
       description: "Skipped - no email or phone"
     },
     {
-      name: "Missing Four",
+      name: "",
       email: "",
       country_code: "",
       mobile_without_country_code: "",

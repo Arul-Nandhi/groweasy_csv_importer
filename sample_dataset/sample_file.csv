@@ -7,7 +7,7 @@ created_at,name,email,mobile,company,city,state,country,crm_status,data_source,d
 2026-07-10 10:15:00,Vikram Rao,vikram.r@fintech.com,9876543215,Fintech Ltd,Hyderabad,Telangana,India,SALE_DONE,leads_on_demand,Purchased plot
 2026-07-10 10:30:00,Neha Sharma,neha.s@webagency.com,9876543216,Web Agency,Kolkata,West Bengal,India,DID_NOT_CONNECT,eden_park,Follow up next week
 2026-07-10 10:45:00,Rohan Mehta,rohan.m@retail.com,9876543217,Retail Corp,Ahmedabad,Gujarat,India,GOOD_LEAD_FOLLOW_UP,varah_swamy,Very interested
-2026-07-10 11:00:00,Missing One,,,No Contact Co,City A,State A,India,DID_NOT_CONNECT,leads_on_demand,Skipped - no email or phone
-2026-07-10 11:15:00,Missing Two,,,No Info Co,City B,State B,India,GOOD_LEAD_FOLLOW_UP,eden_park,Skipped - no contact info
-2026-07-10 11:30:00,Missing Three,,,No Data Co,City C,State C,India,BAD_LEAD,varah_swamy,Skipped - no email or phone
-2026-07-10 11:45:00,Missing Four,,,No Name Co,City D,State D,India,SALE_DONE,sarjapur_plots,Skipped - no contact info
+2026-07-10 11:00:00,,,,No Contact Co,City A,State A,India,DID_NOT_CONNECT,leads_on_demand,Skipped - no email or phone
+2026-07-10 11:15:00,,,,No Info Co,City B,State B,India,GOOD_LEAD_FOLLOW_UP,eden_park,Skipped - no contact info
+2026-07-10 11:30:00,,,,No Data Co,City C,State C,India,BAD_LEAD,varah_swamy,Skipped - no email or phone
+2026-07-10 11:45:00,,,,No Name Co,City D,State D,India,SALE_DONE,sarjapur_plots,Skipped - no contact info

@@ -48,45 +48,91 @@ app.post("/api/import", async (req, res) => {
         const rawState = getValue(["state", "province"]);
         const rawCountry = getValue(["country", "nation"]);
         const rawLeadOwner = getValue(["owner", "assigned", "agent"]);
-        const rawDescription = getValue(["notes", "desc", "message", "query", "about"]);
+        const rawDescription = getValue(["notes", "desc", "message", "query", "about", "description"]);
+        const rawCrmStatus = getValue(["status", "crmstatus", "leadstatus"]);
+        const rawDataSource = getValue(["source", "datasource", "channel"]);
 
         const isSkipped = !rawEmail && !rawMobile;
 
-        // Clean phone number (simple mock cleaning)
-        let cleanedPhone = String(rawMobile).replace(/[^0-9+]/g, "");
-        let countryCode = "+91";
+        // Clean phone number and parse country code
+        let cleanedPhone = String(rawMobile || "").replace(/[^0-9+]/g, "");
+        let countryCode = "";
+        const rawCountryCode = getValue(["countrycode", "country_code", "dialcode", "dial_code"]);
+        if (rawCountryCode) {
+          let cleanedCC = String(rawCountryCode).trim().replace(/[^0-9+]/g, "");
+          if (cleanedCC) {
+            countryCode = cleanedCC.startsWith("+") ? cleanedCC : "+" + cleanedCC;
+          }
+        }
+
         let mobileWithoutCode = cleanedPhone;
         if (cleanedPhone.startsWith("+")) {
           countryCode = cleanedPhone.substring(0, 3);
           mobileWithoutCode = cleanedPhone.substring(3);
         } else if (cleanedPhone.length > 10) {
-          countryCode = "+" + cleanedPhone.substring(0, cleanedPhone.length - 10);
+          if (!countryCode) {
+            countryCode = "+" + cleanedPhone.substring(0, cleanedPhone.length - 10);
+          }
           mobileWithoutCode = cleanedPhone.substring(cleanedPhone.length - 10);
         }
 
-        // Standardize Name (Capitalize initials)
-        let cleanName = rawName || "Lead";
-        if (cleanName.includes("@")) {
-          cleanName = cleanName.split("@")[0].replace(/[^a-zA-Z]/g, " ");
+        if (!countryCode) {
+          countryCode = "+91";
         }
-        cleanName = cleanName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
 
-        // Randomly assign valid CRM status and source from the list
-        const statuses = ["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE"];
-        const sources = ["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"];
-        
-        const crm_status = isSkipped ? "SKIPPED" : statuses[Math.floor(Math.random() * statuses.length)];
-        const data_source = sources[Math.floor(Math.random() * sources.length)];
+        // Standardize Name (Capitalize initials)
+        let cleanName = String(rawName || "").trim();
+        if (!cleanName && rawEmail) {
+          cleanName = rawEmail.split("@")[0].replace(/[^a-zA-Z]/g, " ");
+        }
+        if (cleanName) {
+          cleanName = cleanName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+        } else {
+          cleanName = "Lead";
+        }
+
+        // Determine CRM status
+        let crm_status = "GOOD_LEAD_FOLLOW_UP";
+        if (isSkipped) {
+          crm_status = "SKIPPED";
+        } else if (!rawName) {
+          crm_status = "BAD_LEAD"; // If name is missing, it's definitely a Bad Lead
+        } else if (rawCrmStatus) {
+          const statusUpper = String(rawCrmStatus).toUpperCase().trim().replace(/ /g, "_");
+          if (["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE"].includes(statusUpper)) {
+            crm_status = statusUpper;
+          } else {
+            if (statusUpper.includes("GOOD") || statusUpper.includes("FOLLOW")) crm_status = "GOOD_LEAD_FOLLOW_UP";
+            else if (statusUpper.includes("CONNECT") || statusUpper.includes("DIALED")) crm_status = "DID_NOT_CONNECT";
+            else if (statusUpper.includes("BAD") || statusUpper.includes("INVALID")) crm_status = "BAD_LEAD";
+            else if (statusUpper.includes("SALE") || statusUpper.includes("DONE") || statusUpper.includes("WON")) crm_status = "SALE_DONE";
+          }
+        }
+
+        // Determine Data Source
+        let data_source = "";
+        if (rawDataSource) {
+          const sourceLower = String(rawDataSource).toLowerCase().trim().replace(/ /g, "_");
+          if (["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"].includes(sourceLower)) {
+            data_source = sourceLower;
+          } else {
+            if (sourceLower.includes("demand")) data_source = "leads_on_demand";
+            else if (sourceLower.includes("meridian") || sourceLower.includes("tower")) data_source = "meridian_tower";
+            else if (sourceLower.includes("eden") || sourceLower.includes("park")) data_source = "eden_park";
+            else if (sourceLower.includes("varah") || sourceLower.includes("swamy")) data_source = "varah_swamy";
+            else if (sourceLower.includes("sarjapur") || sourceLower.includes("plots")) data_source = "sarjapur_plots";
+          }
+        }
 
         return {
           created_at: new Date().toISOString().replace("T", " ").substring(0, 19),
           name: cleanName,
-          email: rawEmail || "no-email@example.com",
+          email: rawEmail || "",
           country_code: isSkipped ? "" : countryCode,
-          mobile_without_country_code: isSkipped ? "—" : (mobileWithoutCode || "0000000000"),
+          mobile_without_country_code: isSkipped ? "" : (mobileWithoutCode || ""),
           company: rawCompany || "—",
-          city: rawCity || "Unknown",
-          state: rawState || "Unknown",
+          city: rawCity || "",
+          state: rawState || "",
           country: rawCountry || "India",
           lead_owner: rawLeadOwner || "Arul Nandhi",
           crm_status: crm_status,
