@@ -182,22 +182,23 @@ app.post("/api/import", async (req, res) => {
       }
 
       STRICT CRITICAL RULES:
-      1. CRITICAL: If an input row has BOTH email AND mobile phone empty/missing, set its "crm_status" to "SKIPPED". Do not filter it out; instead, include it in the output list with the "crm_status" set to "SKIPPED".
-      2. Constrain "crm_status" to ONLY one of these five values:
+      1. CRITICAL: If an input row has BOTH email AND mobile phone empty/missing, set its "crm_status" to "SKIPPED". Do not filter it out; instead, include it in the output list with the "crm_status" set to "SKIPPED". For any SKIPPED row, set "country_code" to empty string "" and "mobile_without_country_code" to empty string "".
+      2. If "name" is missing or empty (but email or mobile is present) → set "crm_status" to "BAD_LEAD". Do not infer name to make it a good lead.
+      3. Constrain "crm_status" to ONLY one of these five values:
          - GOOD_LEAD_FOLLOW_UP
          - DID_NOT_CONNECT
          - BAD_LEAD
          - SALE_DONE
          - SKIPPED
-      3. Constrain "data_source" to ONLY one of these five values:
+      4. Constrain "data_source" to ONLY one of these five values:
          - leads_on_demand
          - meridian_tower
          - eden_park
          - varah_swamy
          - sarjapur_plots
-         Default to "leads_on_demand" if no details are present.
-      4. For the phone number: extract any country code (like 91, 1, +91) and save it in "country_code" (prefixed with +). Clean "mobile_without_country_code" so it contains ONLY numeric digits, with no symbols, letters, dashes, or country code.
-      5. Standardize Names: Capitalize the first letter of each word (e.g. "arul nandhi" -> "Arul Nandhi"). If name is missing, infer it from the email (e.g. "arul.nandhi@gmail.com" -> "Arul Nandhi") or set to "Lead".
+         If none match confidently, leave it blank (empty string "").
+      5. For valid phone numbers: extract any country code (like 91, 1, +91) and save it in "country_code" (prefixed with +). Clean "mobile_without_country_code" so it contains ONLY numeric digits, with no symbols, letters, dashes, or country code.
+      6. Standardize Names: Capitalize the first letter of each word (e.g. "arul nandhi" -> "Arul Nandhi"). 
 
       Generate a valid JSON array of objects matching the target schema.
     `;
