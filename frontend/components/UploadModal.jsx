@@ -80,8 +80,7 @@ export default function UploadModal({ open, onClose, darkMode, onImport }) {
     setError("");
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-      const response = await fetch(`${backendUrl}/api/import`, {
+      const response = await fetch("/api/import", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
