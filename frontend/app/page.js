@@ -11,245 +11,173 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Default import stats showing 20 total, 16 imported, and 4 skipped (80% success rate)
+  // Default import stats — 10 total, 8 imported, 2 skipped (80% success rate)
   const [importStats, setImportStats] = useState({
-    total: 20,
-    imported: 16,
-    skipped: 4,
+    total: 10,
+    imported: 8,
+    skipped: 2,
     successRate: "80.0"
   });
 
-  const [selectedLead, setSelectedLead] = useState(null); // Tracks the lead selected for detailed modal view
-  const [visibleCount, setVisibleCount] = useState(8); // Handles pagination limit
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(8);
 
-  // Exact 20 mock leads database matching the requirements (16 valid leads, 4 skipped leads)
+  // 10 clean default leads matching the sample CSV (8 valid + 2 skipped)
   const [leads, setLeads] = useState([
-    {
-      name: "punnnf g",
-      email: "kjgkhv2@gcghc.com",
-      country_code: "+91",
-      mobile_without_country_code: "7894561177",
-      created_at: "2026-06-23 14:37:00",
-      company: "—",
-      crm_status: "SALE_DONE",
-      data_source: "leads_on_demand",
-      description: "Interested in plot"
-    },
-    {
-      name: "kjkvkh",
-      email: "jkhbkbn@hjf.hfv",
-      country_code: "+91",
-      mobile_without_country_code: "1212121415",
-      created_at: "2026-06-23 12:23:00",
-      company: "fhtf",
-      crm_status: "DID_NOT_CONNECT",
-      data_source: "meridian_tower",
-      description: ""
-    },
-    {
-      name: "kugkkh",
-      email: "ijgbig@hgdh.hjc",
-      country_code: "+91",
-      mobile_without_country_code: "1212121217",
-      created_at: "2026-06-23 12:17:00",
-      company: "fhtf",
-      crm_status: "DID_NOT_CONNECT",
-      data_source: "varah_swamy",
-      description: ""
-    },
-    {
-      name: "hjvjv",
-      email: "jfgf@fgd.com",
-      country_code: "+91",
-      mobile_without_country_code: "1515151515",
-      created_at: "2026-06-23 12:16:00",
-      company: "fhtf",
-      crm_status: "GOOD_LEAD_FOLLOW_UP",
-      data_source: "eden_park",
-      description: "Follow up tomorrow"
-    },
-    {
-      name: "Abhraneel Dhar",
-      email: "abhraneeldhar7@groweasy.com",
-      country_code: "+91",
-      mobile_without_country_code: "9051589728",
-      created_at: "2026-06-23 11:01:00",
-      company: "groweasy",
-      crm_status: "GOOD_LEAD_FOLLOW_UP",
-      data_source: "sarjapur_plots",
-      description: "High priority lead"
-    },
-    {
-      name: "fnjf ghf",
-      email: "tjrf.ft@gfjj.com",
-      country_code: "+91",
-      mobile_without_country_code: "1414141414",
-      created_at: "2026-06-22 16:49:00",
-      company: "thr rh",
-      crm_status: "DID_NOT_CONNECT",
-      data_source: "leads_on_demand",
-      description: ""
-    },
-    {
-      name: "fhf",
-      email: "gnhfg@fgjf.com",
-      country_code: "+91",
-      mobile_without_country_code: "1313131313",
-      created_at: "2026-06-22 16:48:00",
-      company: "fhtf",
-      crm_status: "DID_NOT_CONNECT",
-      data_source: "eden_park",
-      description: ""
-    },
-    {
-      name: "Abc 1",
-      email: "abc1@kryf.com",
-      country_code: "+91",
-      mobile_without_country_code: "1212121212",
-      created_at: "2026-06-22 16:44:00",
-      company: "—",
-      crm_status: "DID_NOT_CONNECT",
-      data_source: "varah_swamy",
-      description: ""
-    },
     {
       name: "John Doe",
       email: "john.doe@example.com",
       country_code: "+91",
       mobile_without_country_code: "9876543210",
-      created_at: "2026-06-22 16:30:00",
+      created_at: "2026-07-10 09:00:00",
       company: "GrowEasy",
+      city: "Mumbai",
+      state: "Maharashtra",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "GOOD_LEAD_FOLLOW_UP",
       data_source: "leads_on_demand",
       description: "Interested in plot"
     },
     {
       name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
+      email: "sarah.j@techsol.com",
       country_code: "+91",
       mobile_without_country_code: "9876543211",
-      created_at: "2026-06-22 16:25:00",
+      created_at: "2026-07-10 09:15:00",
       company: "Tech Solutions",
+      city: "Bangalore",
+      state: "Karnataka",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "SALE_DONE",
       data_source: "eden_park",
       description: "Referred by agent"
     },
     {
       name: "Rajesh Patel",
-      email: "rajesh.patel@example.com",
+      email: "rajesh.p@startup.com",
       country_code: "+91",
       mobile_without_country_code: "9876543212",
-      created_at: "2026-06-22 16:20:00",
+      created_at: "2026-07-10 09:30:00",
       company: "Startup Inc",
+      city: "Delhi",
+      state: "Delhi",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "DID_NOT_CONNECT",
       data_source: "varah_swamy",
       description: "No reply to calls"
     },
     {
       name: "Priya Singh",
-      email: "priya.singh@example.com",
+      email: "priya.s@enterprise.com",
       country_code: "+91",
       mobile_without_country_code: "9876543213",
-      created_at: "2026-06-22 16:15:00",
+      created_at: "2026-07-10 09:45:00",
       company: "Enterprise Corp",
+      city: "Pune",
+      state: "Maharashtra",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "BAD_LEAD",
       data_source: "sarjapur_plots",
       description: "Invalid contact details"
     },
     {
       name: "Amit Verma",
-      email: "amit.verma@example.com",
+      email: "amit.v@marketing.com",
       country_code: "+91",
       mobile_without_country_code: "9876543214",
-      created_at: "2026-06-22 16:10:00",
+      created_at: "2026-07-10 10:00:00",
       company: "Marketing Pro",
+      city: "Chennai",
+      state: "Tamil Nadu",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "GOOD_LEAD_FOLLOW_UP",
       data_source: "meridian_tower",
       description: "Callback tomorrow"
     },
     {
       name: "Vikram Rao",
-      email: "vikram.rao@example.com",
+      email: "vikram.r@fintech.com",
       country_code: "+91",
       mobile_without_country_code: "9876543215",
-      created_at: "2026-06-22 16:05:00",
+      created_at: "2026-07-10 10:15:00",
       company: "Fintech Ltd",
+      city: "Hyderabad",
+      state: "Telangana",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "SALE_DONE",
       data_source: "leads_on_demand",
       description: "Purchased plot"
     },
     {
       name: "Neha Sharma",
-      email: "neha.sharma@example.com",
+      email: "neha.s@webagency.com",
       country_code: "+91",
       mobile_without_country_code: "9876543216",
-      created_at: "2026-06-22 16:00:00",
+      created_at: "2026-07-10 10:30:00",
       company: "Web Agency",
+      city: "Kolkata",
+      state: "West Bengal",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "DID_NOT_CONNECT",
       data_source: "eden_park",
       description: "Follow up next week"
     },
     {
       name: "Rohan Mehta",
-      email: "rohan.mehta@example.com",
+      email: "rohan.m@retail.com",
       country_code: "+91",
       mobile_without_country_code: "9876543217",
-      created_at: "2026-06-22 15:55:00",
+      created_at: "2026-07-10 10:45:00",
       company: "Retail Corp",
-      crm_status: "BAD_LEAD",
+      city: "Ahmedabad",
+      state: "Gujarat",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "GOOD_LEAD_FOLLOW_UP",
       data_source: "varah_swamy",
-      description: "Not interested"
+      description: "Very interested"
     },
-    // The 4 Skipped leads representing missing contacts
     {
-      name: "Missing Contact One",
-      email: "no-email@example.com",
+      name: "Missing One",
+      email: "",
       country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-22 15:50:00",
-      company: "No Contact Corp",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:00:00",
+      company: "No Contact Co",
+      city: "City A",
+      state: "State A",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "SKIPPED",
       data_source: "leads_on_demand",
-      crm_note: "Skipped: Both email and phone number are missing.",
-      description: "Sample skipped row 1 for validation demonstration."
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no email or phone"
     },
     {
-      name: "Missing Contact Two",
-      email: "no-contact@example.com",
+      name: "Missing Two",
+      email: "",
       country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-22 15:45:00",
-      company: "No Mobile Corp",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:15:00",
+      company: "No Info Co",
+      city: "City B",
+      state: "State B",
+      country: "India",
+      lead_owner: "Arul Nandhi",
       crm_status: "SKIPPED",
       data_source: "eden_park",
-      crm_note: "Skipped: Phone number is invalid.",
-      description: "Sample skipped row 2 representing contact mismatches."
-    },
-    {
-      name: "Missing Contact Three",
-      email: "no-email-address@example.com",
-      country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-22 15:40:00",
-      company: "No Email Corp",
-      crm_status: "SKIPPED",
-      data_source: "varah_swamy",
-      crm_note: "Skipped: Email address is missing.",
-      description: "Sample skipped row 3 for testing UI indicators."
-    },
-    {
-      name: "Missing Contact Four",
-      email: "no-contact-info@example.com",
-      country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-22 15:35:00",
-      company: "No Info Corp",
-      crm_status: "SKIPPED",
-      data_source: "sarjapur_plots",
-      crm_note: "Skipped: No contact information provided.",
-      description: "Sample skipped row 4 for testing validation rate thresholds."
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no contact info"
     }
   ]);
+
 
   const menuItems = [
     "Dashboard",
