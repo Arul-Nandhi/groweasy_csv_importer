@@ -11,16 +11,19 @@ function runMockMapper(fileData) {
       return matchedKey ? row[matchedKey] : "";
     };
 
-    const rawName = getValue(["name", "firstname", "lastname", "fullname", "contact"]);
+    const rawName = getValue(["name", "firstname", "lastname", "fullname", "customername", "contact"]);
     const rawEmail = getValue(["email", "mail", "emailaddress"]);
-    const rawMobile = getValue(["phone", "mobile", "cell", "contactno", "tel"]);
-    const rawCity = getValue(["city", "town", "location"]);
+    const rawMobile = getValue(["phone", "mobile", "cell", "contactno", "tel", "phonenumber"]);
+    const rawCity = getValue(["city", "town", "location", "region"]);
     const rawCompany = getValue(["company", "org", "firm", "business"]);
     const rawState = getValue(["state", "province"]);
     const rawCountry = getValue(["country", "nation"]);
-    const rawLeadOwner = getValue(["owner", "assigned", "agent"]);
-    const rawDescription = getValue(["notes", "desc", "message", "query", "about"]);
+    const rawLeadOwner = getValue(["owner", "assigned", "agent", "leadowner"]);
+    const rawDescription = getValue(["notes", "desc", "message", "query", "about", "description"]);
     const rawCreatedAt = getValue(["created", "date", "createdat", "timestamp"]);
+    const rawCrmStatus = getValue(["status", "crmstatus", "leadstatus"]);
+    const rawDataSource = getValue(["source", "datasource", "channel"]);
+    const rawPossessionTime = getValue(["possession", "possessiontime"]);
 
     const isSkipped = !rawEmail && !rawMobile;
 
@@ -35,16 +38,45 @@ function runMockMapper(fileData) {
       mobileWithoutCode = cleanedPhone.substring(cleanedPhone.length - 10);
     }
 
-    let cleanName = rawName || "Lead";
-    if (cleanName.includes("@")) {
-      cleanName = cleanName.split("@")[0].replace(/[^a-zA-Z]/g, " ");
+    let cleanName = String(rawName || "").trim();
+    if (!cleanName && rawEmail) {
+      cleanName = rawEmail.split("@")[0].replace(/[^a-zA-Z]/g, " ");
     }
-    cleanName = cleanName.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ").trim() || "Lead";
+    if (cleanName) {
+      cleanName = cleanName.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ").trim();
+    }
+    if (!cleanName) {
+      cleanName = "Lead";
+    }
 
-    const statuses = ["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE"];
-    const sources = ["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"];
-    const crm_status = isSkipped ? "SKIPPED" : statuses[Math.floor(Math.random() * statuses.length)];
-    const data_source = sources[Math.floor(Math.random() * sources.length)];
+    let crm_status = "DID_NOT_CONNECT";
+    if (isSkipped) {
+      crm_status = "SKIPPED";
+    } else if (rawCrmStatus) {
+      const statusUpper = String(rawCrmStatus).toUpperCase().trim().replace(/ /g, "_");
+      if (["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE"].includes(statusUpper)) {
+        crm_status = statusUpper;
+      } else {
+        if (statusUpper.includes("GOOD") || statusUpper.includes("FOLLOW")) crm_status = "GOOD_LEAD_FOLLOW_UP";
+        else if (statusUpper.includes("CONNECT") || statusUpper.includes("DIALED")) crm_status = "DID_NOT_CONNECT";
+        else if (statusUpper.includes("BAD") || statusUpper.includes("INVALID")) crm_status = "BAD_LEAD";
+        else if (statusUpper.includes("SALE") || statusUpper.includes("DONE") || statusUpper.includes("WON")) crm_status = "SALE_DONE";
+      }
+    }
+
+    let data_source = "leads_on_demand";
+    if (rawDataSource) {
+      const sourceLower = String(rawDataSource).toLowerCase().trim().replace(/ /g, "_");
+      if (["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"].includes(sourceLower)) {
+        data_source = sourceLower;
+      } else {
+        if (sourceLower.includes("demand")) data_source = "leads_on_demand";
+        else if (sourceLower.includes("meridian") || sourceLower.includes("tower")) data_source = "meridian_tower";
+        else if (sourceLower.includes("eden") || sourceLower.includes("park")) data_source = "eden_park";
+        else if (sourceLower.includes("varah") || sourceLower.includes("swamy")) data_source = "varah_swamy";
+        else if (sourceLower.includes("sarjapur") || sourceLower.includes("plots")) data_source = "sarjapur_plots";
+      }
+    }
 
     return {
       created_at: rawCreatedAt || new Date().toISOString().replace("T", " ").substring(0, 19),
@@ -60,9 +92,9 @@ function runMockMapper(fileData) {
       crm_status,
       crm_note: isSkipped
         ? "Skipped: both email and phone number are missing."
-        : "Mapped via AI fallback.",
+        : (getValue(["crm_note", "note", "remarks"]) || "Mapped via AI fallback."),
       data_source,
-      possession_time: "",
+      possession_time: rawPossessionTime || "",
       description: rawDescription || "CSV upload",
     };
   });
