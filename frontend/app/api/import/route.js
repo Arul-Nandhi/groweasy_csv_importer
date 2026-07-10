@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Shared mock mapper — used when no API key is set OR when Gemini fails for any reason
+// Shared mock mapper — used when no API key is set OR when AI calls fail
 function runMockMapper(fileData) {
   const mappedLeads = fileData.map((row) => {
     const rawKeys = Object.keys(row);
@@ -125,99 +125,132 @@ export async function POST(request) {
 
   console.log(`Processing ${fileData.length} records from: ${fileName}`);
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const groqApiKey = process.env.GROQ_API_KEY;
+  const geminiApiKey = process.env.GEMINI_API_KEY;
 
-  // No API key — use mock mapper immediately
-  if (!apiKey || apiKey.trim() === "") {
-    console.log("No GEMINI_API_KEY set. Using mock mapper.");
-    return runMockMapper(fileData);
-  }
+  const systemPrompt = `
+    You are an expert CRM lead processing engine. Map raw CSV-parsed lead objects into the standardized GrowEasy CRM JSON schema.
 
-  // Try Gemini AI — fall back to mock on ANY failure (quota, model not found, network, etc.)
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    const modelsToTry = ["gemini-1.5-flash-8b", "gemini-1.5-flash", "gemini-2.0-flash"];
-
-    const systemPrompt = `
-      You are an expert CRM lead processing engine. Map raw CSV-parsed lead objects into the standardized GrowEasy CRM JSON schema.
-
-      TARGET SCHEMA (return a JSON array of these objects):
-      {
-        "created_at": "YYYY-MM-DD HH:MM:SS",
-        "name": "Full Name (Initial Caps)",
-        "email": "email address",
-        "country_code": "+91",
-        "mobile_without_country_code": "digits only, no spaces",
-        "company": "company name",
-        "city": "city",
-        "state": "state",
-        "country": "country",
-        "lead_owner": "owner name",
-        "crm_status": "one of the allowed values below",
-        "crm_note": "remarks or extra info",
-        "data_source": "one of the allowed values below",
-        "possession_time": "",
-        "description": "additional detail"
-      }
-
-      STRICT RULES:
-      1. If a row has BOTH email AND mobile empty/missing → set crm_status to "SKIPPED". Keep the row in output.
-      2. crm_status must be ONLY one of: GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE, SKIPPED
-      3. data_source must be ONLY one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. Default to "leads_on_demand".
-      4. Extract country_code (e.g. +91). Store only digits in mobile_without_country_code.
-      5. Capitalize names properly. Infer from email if name is missing (e.g. john.doe@x.com → "John Doe").
-      6. Multiple emails/mobiles: use first, append rest to crm_note.
-
-      Return ONLY a valid JSON array. No markdown, no explanation.
-    `;
-
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`Trying Gemini model: ${modelName}`);
-
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents: [
-            { text: systemPrompt },
-            { text: `Map these leads:\n${JSON.stringify(fileData)}` }
-          ],
-          config: {
-            responseMimeType: "application/json"
-          }
-        });
-
-        const textContent = response.text;
-        const mappedLeads = JSON.parse(textContent);
-        console.log(`Gemini (${modelName}) mapped ${mappedLeads.length} leads.`);
-
-        return Response.json({
-          success: true,
-          message: `Mapped using Google Gemini AI (${modelName}).`,
-          count: mappedLeads.length,
-          leads: mappedLeads,
-        });
-
-      } catch (modelErr) {
-        const msg = String(modelErr.message || "");
-        console.warn(`Model ${modelName} error details:`, modelErr);
-        const isRetryable = msg.includes("429") || msg.includes("404") || msg.includes("quota") || msg.includes("not found") || msg.includes("limit");
-        if (isRetryable) {
-          console.warn(`Model ${modelName} unavailable, trying next...`);
-          continue;
-        }
-        // Non-retryable error — skip remaining models and fall back
-        console.warn(`Model ${modelName} non-retryable error, falling back to mock:`, msg);
-        break;
-      }
+    TARGET SCHEMA (return a JSON array of these objects):
+    {
+      "created_at": "YYYY-MM-DD HH:MM:SS",
+      "name": "Full Name (Initial Caps)",
+      "email": "email address",
+      "country_code": "+91",
+      "mobile_without_country_code": "digits only, no spaces",
+      "company": "company name",
+      "city": "city",
+      "state": "state",
+      "country": "country",
+      "lead_owner": "owner name",
+      "crm_status": "one of the allowed values below",
+      "crm_note": "remarks or extra info",
+      "data_source": "one of the allowed values below",
+      "possession_time": "",
+      "description": "additional detail"
     }
 
-    // All Gemini models failed — fall back to mock silently
-    console.warn("All Gemini models failed. Using mock mapper as fallback.");
-    return runMockMapper(fileData);
+    STRICT RULES:
+    1. If a row has BOTH email AND mobile empty/missing → set crm_status to "SKIPPED". Keep the row in output.
+    2. crm_status must be ONLY one of: GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE, SKIPPED
+    3. data_source must be ONLY one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. Default to "leads_on_demand".
+    4. Extract country_code (e.g. +91). Store only digits in mobile_without_country_code.
+    5. Capitalize names properly. Infer from email if name is missing (e.g. john.doe@x.com → "John Doe").
+    6. Multiple emails/mobiles: use first, append rest to crm_note.
 
-  } catch (err) {
-    // Unexpected outer error — still fall back to mock instead of crashing
-    console.error("Unexpected error, falling back to mock:", err.message);
-    return runMockMapper(fileData);
+    Return ONLY a valid JSON array. Do not wrap in markdown blocks, no code fences.
+  `;
+
+  // --- Path A: Try Groq Llama-3 API first (Highly stable and free) ---
+  if (groqApiKey && groqApiKey.trim() !== "") {
+    try {
+      console.log("Using Groq Llama-3 API mapping...");
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${groqApiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Map these leads:\n${JSON.stringify(fileData)}` }
+          ],
+          temperature: 0.1,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Groq HTTP error: ${response.status}`);
+      }
+
+      const resBody = await response.json();
+      const content = resBody.choices[0].message.content;
+      const parsedData = JSON.parse(content);
+      const leadsArray = Array.isArray(parsedData) ? parsedData : (parsedData.leads || []);
+
+      console.log(`Groq Llama-3 mapped ${leadsArray.length} leads.`);
+      return Response.json({
+        success: true,
+        message: "Mapped using Groq Llama-3 AI.",
+        count: leadsArray.length,
+        leads: leadsArray
+      });
+
+    } catch (groqErr) {
+      console.warn("Groq API failed, attempting Gemini fallback. Error:", groqErr.message);
+    }
   }
+
+  // --- Path B: Try Gemini API ---
+  if (geminiApiKey && geminiApiKey.trim() !== "") {
+    try {
+      const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+      const modelsToTry = ["gemini-1.5-flash-8b", "gemini-1.5-flash", "gemini-2.0-flash"];
+
+      for (const modelName of modelsToTry) {
+        try {
+          console.log(`Trying Gemini model: ${modelName}`);
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: [
+              { text: systemPrompt },
+              { text: `Map these leads:\n${JSON.stringify(fileData)}` }
+            ],
+            config: {
+              responseMimeType: "application/json"
+            }
+          });
+
+          const textContent = response.text;
+          const mappedLeads = JSON.parse(textContent);
+          console.log(`Gemini (${modelName}) mapped ${mappedLeads.length} leads.`);
+
+          return Response.json({
+            success: true,
+            message: `Mapped using Google Gemini AI (${modelName}).`,
+            count: mappedLeads.length,
+            leads: mappedLeads,
+          });
+
+        } catch (modelErr) {
+          const msg = String(modelErr.message || "");
+          const isRetryable = msg.includes("429") || msg.includes("404") || msg.includes("quota") || msg.includes("not found") || msg.includes("limit");
+          if (isRetryable) {
+            console.warn(`Model ${modelName} unavailable, trying next...`);
+            continue;
+          }
+          break;
+        }
+      }
+    } catch (geminiErr) {
+      console.warn("Gemini API failed:", geminiErr.message);
+    }
+  }
+
+  // --- Path C: Default to Mock Fallback ---
+  console.log("No working API keys found. Falling back to local Mock mapper.");
+  return runMockMapper(fileData);
 }
