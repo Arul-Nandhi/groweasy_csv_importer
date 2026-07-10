@@ -1,13 +1,13 @@
 # GrowEasy CRM CSV Importer Submission
 
-This repository contains my submission for the Software Developer assignment at GrowEasy. It is a full-stack web application designed to import and map lead data from any CSV layout into the standardized GrowEasy CRM leads schema using AI mapping.
+This repository contains my submission for the Software Developer assignment at GrowEasy. It is a web application designed to import and map lead data from any CSV layout into the standardized GrowEasy CRM leads schema using AI mapping.
 
 ## Project Overview
 
 The project consists of:
-1. A Next.js frontend that allows uploading CSV files via drag-and-drop or browsing, parses the headers to display a local preview, and posts them to the backend server.
-2. A Node.js / Express backend server that communicates with the Google Gemini API (model `gemini-1.5-flash`) in JSON mode to map and sanitize name capitalizations and phone formats.
-3. A Mock AI fallback mapping mechanism in the backend that uses keyword matching if the Gemini API Key is not set, allowing the application to be tested immediately without key configuration.
+1. A Next.js frontend that allows uploading CSV files via drag-and-drop or browsing, parses the headers to display a local preview, and posts them to the backend API.
+2. A Next.js Serverless API Route (`/api/import`) that communicates with the Google Gemini API (model `gemini-2.0-flash`, `gemini-1.5-flash`, or `gemini-1.5-flash-8b`) in JSON mode to map and sanitize name capitalizations and phone formats.
+3. A Mock AI fallback mapping mechanism in the API route that preserves original values if the Gemini API Key is not set or if Gemini quota is exceeded, allowing the application to be tested immediately without key configuration or quota errors.
 
 ## Folder Structure
 

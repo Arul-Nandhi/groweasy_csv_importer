@@ -10,11 +10,19 @@ export default function Home() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
-  const [importStats, setImportStats] = useState(null); // Holds stats of the last CSV upload
+  
+  // Default import stats showing 20 total, 16 imported, and 4 skipped (80% success rate)
+  const [importStats, setImportStats] = useState({
+    total: 20,
+    imported: 16,
+    skipped: 4,
+    successRate: "80.0"
+  });
+
   const [selectedLead, setSelectedLead] = useState(null); // Tracks the lead selected for detailed modal view
   const [visibleCount, setVisibleCount] = useState(8); // Handles pagination limit
 
-  // Default Mock leads data matching the screenshots, including skipped test records
+  // Exact 20 mock leads database matching the requirements (16 valid leads, 4 skipped leads)
   const [leads, setLeads] = useState([
     {
       name: "punnnf g",
@@ -37,18 +45,6 @@ export default function Home() {
       crm_status: "DID_NOT_CONNECT",
       data_source: "meridian_tower",
       description: ""
-    },
-    {
-      name: "Missing Contact One",
-      email: "no-email@example.com",
-      country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-23 12:20:00",
-      company: "No Contact Corp",
-      crm_status: "SKIPPED",
-      data_source: "leads_on_demand",
-      crm_note: "Skipped: Both email and phone number are missing.",
-      description: "Sample skipped row for validation demonstration."
     },
     {
       name: "kugkkh",
@@ -84,18 +80,6 @@ export default function Home() {
       description: "High priority lead"
     },
     {
-      name: "Missing Contact Two",
-      email: "no-contact@example.com",
-      country_code: "",
-      mobile_without_country_code: "—",
-      created_at: "2026-06-22 17:00:00",
-      company: "No Mobile Corp",
-      crm_status: "SKIPPED",
-      data_source: "eden_park",
-      crm_note: "Skipped: Both email and phone number are missing.",
-      description: "Another sample skipped lead."
-    },
-    {
       name: "fnjf ghf",
       email: "tjrf.ft@gfjj.com",
       country_code: "+91",
@@ -127,6 +111,143 @@ export default function Home() {
       crm_status: "DID_NOT_CONNECT",
       data_source: "varah_swamy",
       description: ""
+    },
+    {
+      name: "John Doe",
+      email: "john.doe@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543210",
+      created_at: "2026-06-22 16:30:00",
+      company: "GrowEasy",
+      crm_status: "GOOD_LEAD_FOLLOW_UP",
+      data_source: "leads_on_demand",
+      description: "Interested in plot"
+    },
+    {
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543211",
+      created_at: "2026-06-22 16:25:00",
+      company: "Tech Solutions",
+      crm_status: "SALE_DONE",
+      data_source: "eden_park",
+      description: "Referred by agent"
+    },
+    {
+      name: "Rajesh Patel",
+      email: "rajesh.patel@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543212",
+      created_at: "2026-06-22 16:20:00",
+      company: "Startup Inc",
+      crm_status: "DID_NOT_CONNECT",
+      data_source: "varah_swamy",
+      description: "No reply to calls"
+    },
+    {
+      name: "Priya Singh",
+      email: "priya.singh@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543213",
+      created_at: "2026-06-22 16:15:00",
+      company: "Enterprise Corp",
+      crm_status: "BAD_LEAD",
+      data_source: "sarjapur_plots",
+      description: "Invalid contact details"
+    },
+    {
+      name: "Amit Verma",
+      email: "amit.verma@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543214",
+      created_at: "2026-06-22 16:10:00",
+      company: "Marketing Pro",
+      crm_status: "GOOD_LEAD_FOLLOW_UP",
+      data_source: "meridian_tower",
+      description: "Callback tomorrow"
+    },
+    {
+      name: "Vikram Rao",
+      email: "vikram.rao@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543215",
+      created_at: "2026-06-22 16:05:00",
+      company: "Fintech Ltd",
+      crm_status: "SALE_DONE",
+      data_source: "leads_on_demand",
+      description: "Purchased plot"
+    },
+    {
+      name: "Neha Sharma",
+      email: "neha.sharma@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543216",
+      created_at: "2026-06-22 16:00:00",
+      company: "Web Agency",
+      crm_status: "DID_NOT_CONNECT",
+      data_source: "eden_park",
+      description: "Follow up next week"
+    },
+    {
+      name: "Rohan Mehta",
+      email: "rohan.mehta@example.com",
+      country_code: "+91",
+      mobile_without_country_code: "9876543217",
+      created_at: "2026-06-22 15:55:00",
+      company: "Retail Corp",
+      crm_status: "BAD_LEAD",
+      data_source: "varah_swamy",
+      description: "Not interested"
+    },
+    // The 4 Skipped leads representing missing contacts
+    {
+      name: "Missing Contact One",
+      email: "no-email@example.com",
+      country_code: "",
+      mobile_without_country_code: "—",
+      created_at: "2026-06-22 15:50:00",
+      company: "No Contact Corp",
+      crm_status: "SKIPPED",
+      data_source: "leads_on_demand",
+      crm_note: "Skipped: Both email and phone number are missing.",
+      description: "Sample skipped row 1 for validation demonstration."
+    },
+    {
+      name: "Missing Contact Two",
+      email: "no-contact@example.com",
+      country_code: "",
+      mobile_without_country_code: "—",
+      created_at: "2026-06-22 15:45:00",
+      company: "No Mobile Corp",
+      crm_status: "SKIPPED",
+      data_source: "eden_park",
+      crm_note: "Skipped: Phone number is invalid.",
+      description: "Sample skipped row 2 representing contact mismatches."
+    },
+    {
+      name: "Missing Contact Three",
+      email: "no-email-address@example.com",
+      country_code: "",
+      mobile_without_country_code: "—",
+      created_at: "2026-06-22 15:40:00",
+      company: "No Email Corp",
+      crm_status: "SKIPPED",
+      data_source: "varah_swamy",
+      crm_note: "Skipped: Email address is missing.",
+      description: "Sample skipped row 3 for testing UI indicators."
+    },
+    {
+      name: "Missing Contact Four",
+      email: "no-contact-info@example.com",
+      country_code: "",
+      mobile_without_country_code: "—",
+      created_at: "2026-06-22 15:35:00",
+      company: "No Info Corp",
+      crm_status: "SKIPPED",
+      data_source: "sarjapur_plots",
+      crm_note: "Skipped: No contact information provided.",
+      description: "Sample skipped row 4 for testing validation rate thresholds."
     }
   ]);
 
@@ -148,7 +269,6 @@ export default function Home() {
 
   // Callback when uploader modal completes mapping successfully
   const handleImportLeads = (newLeads, stats) => {
-    // Standardize lead created dates if missing
     const preparedLeads = newLeads.map(l => ({
       ...l,
       created_at: l.created_at || new Date().toISOString().replace("T", " ").substring(0, 19)
@@ -156,7 +276,6 @@ export default function Home() {
 
     setLeads((prevLeads) => [...preparedLeads, ...prevLeads]);
     
-    // Calculate import stats details based on "SKIPPED" status
     const total = stats.totalRecords;
     const skipped = newLeads.filter(l => l.crm_status === "SKIPPED").length;
     const imported = total - skipped;
@@ -531,7 +650,7 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   {/* Total Leads */}
                   <div className={`p-5 rounded-2xl border flex items-center gap-4 transition shadow-xs ${
-                    darkMode ? "bg-slate-900 border-slate-800" : "bg-sky-50/40 border-sky-100/50"
+                    darkMode ? "bg-slate-950 border-slate-800" : "bg-sky-50/40 border-sky-100/50"
                   }`}>
                     <div className={`p-3 rounded-xl ${
                       darkMode ? "bg-slate-800 text-sky-400" : "bg-sky-100 text-sky-600"
@@ -548,7 +667,7 @@ export default function Home() {
 
                   {/* Good Leads */}
                   <div className={`p-5 rounded-2xl border flex items-center gap-4 transition shadow-xs ${
-                    darkMode ? "bg-slate-900 border-slate-800" : "bg-emerald-50/40 border-emerald-100/50"
+                    darkMode ? "bg-slate-950 border-slate-800" : "bg-emerald-50/40 border-emerald-100/50"
                   }`}>
                     <div className={`p-3 rounded-xl ${
                       darkMode ? "bg-slate-800 text-emerald-400" : "bg-emerald-100 text-emerald-600"
@@ -565,7 +684,7 @@ export default function Home() {
 
                   {/* Sales Completed */}
                   <div className={`p-5 rounded-2xl border flex items-center gap-4 transition shadow-xs ${
-                    darkMode ? "bg-slate-900 border-slate-800" : "bg-blue-50/40 border-blue-100/50"
+                    darkMode ? "bg-slate-950 border-slate-800" : "bg-blue-50/40 border-blue-100/50"
                   }`}>
                     <div className={`p-3 rounded-xl ${
                       darkMode ? "bg-slate-800 text-blue-400" : "bg-blue-100 text-blue-600"
@@ -582,7 +701,7 @@ export default function Home() {
 
                   {/* Conversion Rate */}
                   <div className={`p-5 rounded-2xl border flex items-center gap-4 transition shadow-xs ${
-                    darkMode ? "bg-slate-900 border-slate-800" : "bg-cyan-50/40 border-cyan-100/50"
+                    darkMode ? "bg-slate-950 border-slate-800" : "bg-cyan-50/40 border-cyan-100/50"
                   }`}>
                     <div className={`p-3 rounded-xl ${
                       darkMode ? "bg-slate-800 text-cyan-400" : "bg-cyan-100 text-cyan-600"
@@ -833,7 +952,7 @@ export default function Home() {
                 <div>
                   <div
                     className={`rounded-3xl p-8 shadow-2xl transition ${darkMode
-                        ? "bg-slate-900 border border-slate-800"
+                        ? "bg-slate-900 border-slate-800"
                         : "bg-white/80 backdrop-blur-md border border-cyan-100"
                       }`}
                   >
