@@ -31,14 +31,28 @@ function runMockMapper(fileData) {
     const isSkipped = !rawEmail && !rawMobile;
 
     let cleanedPhone = String(rawMobile || "").replace(/[^0-9+]/g, "");
-    let countryCode = "+91";
+    let countryCode = "";
+    const rawCountryCode = getValue(["countrycode", "country_code", "dialcode", "dial_code"]);
+    if (rawCountryCode) {
+      let cleanedCC = String(rawCountryCode).trim().replace(/[^0-9+]/g, "");
+      if (cleanedCC) {
+        countryCode = cleanedCC.startsWith("+") ? cleanedCC : "+" + cleanedCC;
+      }
+    }
+
     let mobileWithoutCode = cleanedPhone;
     if (cleanedPhone.startsWith("+")) {
       countryCode = cleanedPhone.substring(0, 3);
       mobileWithoutCode = cleanedPhone.substring(3);
     } else if (cleanedPhone.length > 10) {
-      countryCode = "+" + cleanedPhone.substring(0, cleanedPhone.length - 10);
+      if (!countryCode) {
+        countryCode = "+" + cleanedPhone.substring(0, cleanedPhone.length - 10);
+      }
       mobileWithoutCode = cleanedPhone.substring(cleanedPhone.length - 10);
+    }
+
+    if (!countryCode) {
+      countryCode = "+91";
     }
 
     let cleanName = String(rawName || "").trim();

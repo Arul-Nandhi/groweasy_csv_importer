@@ -11,18 +11,18 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Default import stats — 10 total, 8 imported, 2 skipped (80% success rate)
+  // Default import stats — 12 total, 8 imported, 4 skipped (66.7% success rate)
   const [importStats, setImportStats] = useState({
-    total: 10,
+    total: 12,
     imported: 8,
-    skipped: 2,
-    successRate: "80.0"
+    skipped: 4,
+    successRate: "66.7"
   });
 
   const [selectedLead, setSelectedLead] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(8);
+  const [visibleCount, setVisibleCount] = useState(7);
 
-  // 10 clean default leads matching the sample CSV (8 valid + 2 skipped)
+  // 12 clean default leads matching the sample CSV (8 valid + 4 skipped)
   const [leads, setLeads] = useState([
     {
       name: "John Doe",
@@ -173,6 +173,38 @@ export default function Home() {
       lead_owner: "Arul Nandhi",
       crm_status: "SKIPPED",
       data_source: "eden_park",
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no contact info"
+    },
+    {
+      name: "Missing Three",
+      email: "",
+      country_code: "",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:30:00",
+      company: "No Data Co",
+      city: "City C",
+      state: "State C",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "SKIPPED",
+      data_source: "varah_swamy",
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no email or phone"
+    },
+    {
+      name: "Missing Four",
+      email: "",
+      country_code: "",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:45:00",
+      company: "No Name Co",
+      city: "City D",
+      state: "State D",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "SKIPPED",
+      data_source: "sarjapur_plots",
       crm_note: "Skipped: both email and phone number are missing.",
       description: "Skipped - no contact info"
     }
@@ -563,8 +595,8 @@ export default function Home() {
                     <div className={`p-3 rounded-xl ${
                       darkMode ? "bg-slate-800 text-cyan-400" : "bg-cyan-100 text-cyan-600"
                     }`}>
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.195-.39.73-.39.926 0l3.03 6.14 6.772.985c.43.063.602.592.29.9l-4.9 4.777 1.157 6.745c.074.431-.382.762-.766.559L12 19.347l-6.059 3.184c-.384.203-.84-.128-.766-.56l1.157-6.744-4.9-4.778c-.312-.307-.14-.836.29-.899l6.772-.984 3.03-6.14z" />
                       </svg>
                     </div>
                     <div>
