@@ -13,7 +13,7 @@ The project consists of:
 
 * `backend/` - Node.js Express server code, backend env file, and unit tests.
 * `frontend/` - Next.js client, pages, components, and global styling.
-* `sample_dataset/` - Contains `sample_file.csv` with 10 sample lead rows (8 valid, 2 invalid missing contacts) to verify status flows.
+* `sample_dataset/` - Contains `sample_file.csv` with 12 sample lead rows (8 valid, 4 invalid missing contacts) to verify status flows.
 * `docker-compose.yml` - File to run both services together using Docker.
 
 ## Installation and Setup
