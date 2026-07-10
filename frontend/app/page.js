@@ -22,7 +22,7 @@ export default function Home() {
   const [selectedLead, setSelectedLead] = useState(null);
   const [visibleCount, setVisibleCount] = useState(7);
 
-  // 12 clean default leads matching the sample CSV (8 valid + 4 skipped)
+  // 12 clean default leads matching the sample CSV (8 valid + 4 skipped dispersed)
   const [leads, setLeads] = useState([
     {
       name: "John Doe",
@@ -55,6 +55,22 @@ export default function Home() {
       description: "Referred by agent"
     },
     {
+      name: "",
+      email: "",
+      country_code: "",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:00:00",
+      company: "No Contact Co",
+      city: "City A",
+      state: "State A",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "SKIPPED",
+      data_source: "leads_on_demand",
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no email or phone"
+    },
+    {
       name: "Rajesh Patel",
       email: "rajesh.p@startup.com",
       country_code: "+91",
@@ -83,6 +99,22 @@ export default function Home() {
       crm_status: "BAD_LEAD",
       data_source: "sarjapur_plots",
       description: "Invalid contact details"
+    },
+    {
+      name: "",
+      email: "",
+      country_code: "",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:15:00",
+      company: "No Info Co",
+      city: "City B",
+      state: "State B",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "SKIPPED",
+      data_source: "eden_park",
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no contact info"
     },
     {
       name: "Amit Verma",
@@ -115,6 +147,22 @@ export default function Home() {
       description: "Purchased plot"
     },
     {
+      name: "",
+      email: "",
+      country_code: "",
+      mobile_without_country_code: "",
+      created_at: "2026-07-10 11:30:00",
+      company: "No Data Co",
+      city: "City C",
+      state: "State C",
+      country: "India",
+      lead_owner: "Arul Nandhi",
+      crm_status: "SKIPPED",
+      data_source: "varah_swamy",
+      crm_note: "Skipped: both email and phone number are missing.",
+      description: "Skipped - no email or phone"
+    },
+    {
       name: "Neha Sharma",
       email: "neha.s@webagency.com",
       country_code: "+91",
@@ -143,54 +191,6 @@ export default function Home() {
       crm_status: "GOOD_LEAD_FOLLOW_UP",
       data_source: "varah_swamy",
       description: "Very interested"
-    },
-    {
-      name: "",
-      email: "",
-      country_code: "",
-      mobile_without_country_code: "",
-      created_at: "2026-07-10 11:00:00",
-      company: "No Contact Co",
-      city: "City A",
-      state: "State A",
-      country: "India",
-      lead_owner: "Arul Nandhi",
-      crm_status: "SKIPPED",
-      data_source: "leads_on_demand",
-      crm_note: "Skipped: both email and phone number are missing.",
-      description: "Skipped - no email or phone"
-    },
-    {
-      name: "",
-      email: "",
-      country_code: "",
-      mobile_without_country_code: "",
-      created_at: "2026-07-10 11:15:00",
-      company: "No Info Co",
-      city: "City B",
-      state: "State B",
-      country: "India",
-      lead_owner: "Arul Nandhi",
-      crm_status: "SKIPPED",
-      data_source: "eden_park",
-      crm_note: "Skipped: both email and phone number are missing.",
-      description: "Skipped - no contact info"
-    },
-    {
-      name: "",
-      email: "",
-      country_code: "",
-      mobile_without_country_code: "",
-      created_at: "2026-07-10 11:30:00",
-      company: "No Data Co",
-      city: "City C",
-      state: "State C",
-      country: "India",
-      lead_owner: "Arul Nandhi",
-      crm_status: "SKIPPED",
-      data_source: "varah_swamy",
-      crm_note: "Skipped: both email and phone number are missing.",
-      description: "Skipped - no email or phone"
     },
     {
       name: "",
@@ -234,7 +234,8 @@ export default function Home() {
       created_at: l.created_at || new Date().toISOString().replace("T", " ").substring(0, 19)
     }));
 
-    setLeads((prevLeads) => [...preparedLeads, ...prevLeads]);
+    setLeads(preparedLeads); // Replace leads state completely instead of prepending, avoiding duplication
+    setVisibleCount(7); // Reset visibleCount to 7 for the newly uploaded CSV leads
     
     const total = stats.totalRecords;
     const skipped = newLeads.filter(l => l.crm_status === "SKIPPED").length;
