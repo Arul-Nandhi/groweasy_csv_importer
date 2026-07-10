@@ -181,9 +181,9 @@ app.post("/api/import", async (req, res) => {
         "description": "Short bio or inquiry detail if any"
       }
 
-      STRICT CRITICAL RULES:
-      1. CRITICAL: If an input row has BOTH email AND mobile phone empty/missing, set its "crm_status" to "SKIPPED". Do not filter it out; instead, include it in the output list with the "crm_status" set to "SKIPPED". For any SKIPPED row, set "country_code" to empty string "" and "mobile_without_country_code" to empty string "".
-      2. If "name" is missing or empty (but email or mobile is present) → set "crm_status" to "BAD_LEAD". Do not infer name to make it a good lead.
+      STRICT CRITICAL RULES (apply in this exact order of priority):
+      1. ⚠️ HIGHEST PRIORITY — SKIPPED CHECK: Before doing ANYTHING else for each row, check if BOTH email AND mobile/phone are empty or missing. If YES → you MUST set crm_status to "SKIPPED" and set country_code to "" and mobile_without_country_code to "". This rule OVERRIDES any crm_status value already present in the input row. Do NOT use any other status for such rows.
+      2. If "name" is missing or empty (but email or mobile is present) → set "crm_status" to "BAD_LEAD".
       3. Constrain "crm_status" to ONLY one of these five values:
          - GOOD_LEAD_FOLLOW_UP
          - DID_NOT_CONNECT

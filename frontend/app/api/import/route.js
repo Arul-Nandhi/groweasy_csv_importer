@@ -66,9 +66,11 @@ function runMockMapper(fileData) {
       cleanName = "Lead";
     }
 
-    let crm_status = "DID_NOT_CONNECT";
+    let crm_status = "GOOD_LEAD_FOLLOW_UP";
     if (isSkipped) {
       crm_status = "SKIPPED";
+    } else if (!rawName) {
+      crm_status = "BAD_LEAD"; // If name is missing, it's definitely a Bad Lead
     } else if (rawCrmStatus) {
       const statusUpper = String(rawCrmStatus).toUpperCase().trim().replace(/ /g, "_");
       if (["GOOD_LEAD_FOLLOW_UP", "DID_NOT_CONNECT", "BAD_LEAD", "SALE_DONE"].includes(statusUpper)) {
@@ -167,8 +169,8 @@ export async function POST(request) {
       "description": "additional detail"
     }
 
-    STRICT RULES:
-    1. If a row has BOTH email AND mobile empty/missing → set crm_status to "SKIPPED". Keep the row in output.
+    STRICT RULES (apply in this exact order of priority):
+    1. ⚠️ HIGHEST PRIORITY — SKIPPED CHECK: Before doing ANYTHING else for each row, check if BOTH email AND mobile/phone are empty or missing. If YES → you MUST set crm_status to "SKIPPED" and set country_code to "" and mobile_without_country_code to "". This rule OVERRIDES any crm_status value already present in the input row. Do NOT use any other status for such rows.
     2. crm_status must be ONLY one of: GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE, SKIPPED
     3. data_source must be ONLY one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. If none match confidently, leave it blank (empty string "").
     4. Extract country_code (e.g. +91). Store only digits in mobile_without_country_code.
