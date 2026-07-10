@@ -174,7 +174,7 @@ export async function POST(request) {
         body: JSON.stringify({
           model: "llama-3.1-8b-instant",
           messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: systemPrompt + "\n\nIMPORTANT: Wrap the output array in a JSON object with key \"leads\". Example format: {\"leads\": [{...}, {...}]}" },
             { role: "user", content: `Map these leads:\n${JSON.stringify(fileData)}` }
           ],
           temperature: 0.1,
@@ -189,7 +189,15 @@ export async function POST(request) {
       const resBody = await response.json();
       const content = resBody.choices[0].message.content;
       const parsedData = JSON.parse(content);
-      const leadsArray = Array.isArray(parsedData) ? parsedData : (parsedData.leads || []);
+      // Handle both raw array and wrapped object (e.g. {leads: [...]} or {data: [...]})
+      let leadsArray = [];
+      if (Array.isArray(parsedData)) {
+        leadsArray = parsedData;
+      } else {
+        // Find the first array value in the object
+        const arrayVal = Object.values(parsedData).find((v) => Array.isArray(v));
+        leadsArray = arrayVal || [];
+      }
 
       console.log(`Groq Llama-3 mapped ${leadsArray.length} leads.`);
       return Response.json({
