@@ -1,5 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
+// Extend Vercel serverless function timeout (default is 10s on Hobby, 15s on Pro)
+export const maxDuration = 30;
+
 // Shared mock mapper — used when no API key is set OR when AI calls fail
 function runMockMapper(fileData) {
   const mappedLeads = fileData.map((row) => {
@@ -165,8 +168,13 @@ export async function POST(request) {
   if (groqApiKey && groqApiKey.trim() !== "") {
     try {
       console.log("Using Groq Llama-3 API mapping...");
+      // Use AbortController to enforce a 25s timeout (safe within Vercel's 30s limit)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000);
+
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Authorization": `Bearer ${groqApiKey}`,
           "Content-Type": "application/json"
@@ -181,6 +189,7 @@ export async function POST(request) {
           response_format: { type: "json_object" }
         })
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`Groq HTTP error: ${response.status}`);
@@ -208,7 +217,7 @@ export async function POST(request) {
       });
 
     } catch (groqErr) {
-      console.warn("Groq API failed, attempting Gemini fallback. Error:", groqErr.message);
+      console.warn("Groq API failed, attempting Gemini fallback. Error:", groqErr.name, groqErr.message);
     }
   }
 
@@ -259,6 +268,7 @@ export async function POST(request) {
   }
 
   // --- Path C: Default to Mock Fallback ---
-  console.log("No working API keys found. Falling back to local Mock mapper.");
+  console.log("No working API keys found or all APIs failed. Falling back to local Mock mapper.");
+  console.log("Env check — GROQ_API_KEY present:", !!groqApiKey, "| GEMINI_API_KEY present:", !!geminiApiKey);
   return runMockMapper(fileData);
 }
