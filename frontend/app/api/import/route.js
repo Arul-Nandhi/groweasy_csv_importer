@@ -81,7 +81,7 @@ function runMockMapper(fileData) {
       }
     }
 
-    let data_source = "leads_on_demand";
+    let data_source = "";
     if (rawDataSource) {
       const sourceLower = String(rawDataSource).toLowerCase().trim().replace(/ /g, "_");
       if (["leads_on_demand", "meridian_tower", "eden_park", "varah_swamy", "sarjapur_plots"].includes(sourceLower)) {
@@ -170,7 +170,7 @@ export async function POST(request) {
     STRICT RULES:
     1. If a row has BOTH email AND mobile empty/missing → set crm_status to "SKIPPED". Keep the row in output.
     2. crm_status must be ONLY one of: GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE, SKIPPED
-    3. data_source must be ONLY one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. Default to "leads_on_demand".
+    3. data_source must be ONLY one of: leads_on_demand, meridian_tower, eden_park, varah_swamy, sarjapur_plots. If none match confidently, leave it blank (empty string "").
     4. Extract country_code (e.g. +91). Store only digits in mobile_without_country_code.
     5. Capitalize names properly. Infer from email if name is missing (e.g. john.doe@x.com → "John Doe").
     6. Multiple emails/mobiles: use first, append rest to crm_note.
